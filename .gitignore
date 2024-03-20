@@ -3,3 +3,5 @@ test.py
 Pipfile*
 
 .idea/
+__pycache__/
+
