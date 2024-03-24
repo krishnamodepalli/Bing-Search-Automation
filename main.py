@@ -12,11 +12,21 @@ from SearchGenerator import SearchGenerator
 
 
 class BrowserCodes:
+    """
+    A simple struct like light-weight class for just converting browser-codes
+    into browser-names (str) and vice-versa. Just making it convenient for
+    knowing browser-code for each browser.
+    """
     CHROME = 1
     BRAVE = 2
     EDGE = 3
 
-    def get_browser(self, code) -> str:
+    @staticmethod
+    def get_browser(code) -> str:
+        """
+        This will provide the browser name for the corresponding browser code.
+        :return browser_name: str value of the browser name
+        """
         if code == 1:    res = 'chrome'
         elif code == 2:  res = 'brave'
         elif code == 3:  res = 'edge'
@@ -27,6 +37,9 @@ class BrowserCodes:
 
 
 # Kindly, please change the below configurations for your use-case and browsers
+# Not all the configurations are always used for the application, only some
+# are used based on specifications and needs. 'chrome-profile-dir' and others
+# are used for Chrome browser. Only the search-count is always used.
 app_configuration = {
     'browser': 'chrome',
     'port': 8989,
@@ -78,7 +91,8 @@ def make_browser_search(query: str) -> None:
     search_box.send_keys(query, Keys.ENTER)
 
 
-# TODO 1. Add CLI arguments to pass the no. of searches and also specifying the browser to use
+# TODO 1. Add CLI arguments to pass the no. of searches and also specifying
+#  the browser to use
 if __name__ == '__main__':
     generator = SearchGenerator()
     set_browser_ready(BrowserCodes.CHROME)
