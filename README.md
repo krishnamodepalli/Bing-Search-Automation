@@ -23,7 +23,7 @@ open in the script itself.
 Please kindly refer to the `app_configurations` in `main.py:54` for script 
 setting like no. of searches and chrome profiles and browser paths.
 
-#### For Chrome
+#### For Chrome & Brave
 > **We highly recommend you reading this before working with chrome in our 
 > project.**
 
@@ -42,10 +42,18 @@ modify the setting in the `app_configurations`
 > These setting configurations will be made easier and simpler in the 
 > upcoming releases.
 
+#### Types of searches
+There are 2 types of searches provided with the bundle, one is just a simple 
+one with a lot of keywords in a single file and randomly searching those 
+keywords, Or You can have a [`NEWS-API`](https://newsapi.org)'s API_KEY and 
+provided it with the configuration of the app, you will be searching the 
+latest news on the internet in the bing searches.
+
 
 ### Compatible browsers
 1. Edge
 2. Chrome
+3. Brave
 
 Will be adding support to other browsers as well soon.
 

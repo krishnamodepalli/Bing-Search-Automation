@@ -1,5 +1,5 @@
 import os
-import random
+import random as rn
 import time
 
 from selenium import webdriver
@@ -41,10 +41,11 @@ class BrowserCodes:
 # are used based on specifications and needs. 'chrome-profile-dir' and others
 # are used for Chrome browser. Only the search-count is always used.
 app_configuration = {
+    'search-source': 'keywords',    # this field can be 'keywords' or 'news-api'
     'browser': 'chrome',
     'port': 8989,
     'chrome-profile-dir': r'C:\Users\krish\Apps\chrome\profile',
-    'search-count': 10
+    'search-count': 30
 }
 
 driver = None
@@ -67,13 +68,22 @@ def set_browser_ready(browser: int) -> None:
         options.add_experimental_option("debuggerAddress", "localhost:8989")
         driver = webdriver.Chrome(options=options)
     elif browser == 3:              # edge
+        # mobile_emulation = {
+        #     "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
+        #     "userAgent": "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 "
+        #                  "Build/JOP40D) AppleWebKit/535.19 (KHTML, "
+        #                  "like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
+        # }
         options = EdgeOptions()
+        # options.add_experimental_option('mobileEmulation', mobile_emulation)
         # not closing the browser after completion of the task
         options.add_experimental_option("detach", True)
         driver = webdriver.Edge(options=options)
 
     driver.maximize_window()
     driver.get('https://www.bing.com/')
+    # it is better to wait for the webpage to load
+    time.sleep(2.0)
 
 
 def make_browser_search(query: str) -> None:
@@ -84,23 +94,40 @@ def make_browser_search(query: str) -> None:
     :return: None
     """
     # TODO 2: Make sure the driver is ready with the bing website
-    time.sleep(3)
     search_box = driver.find_element(By.ID, 'sb_form_q')
     # if the search-box is not clear, clear it.
     search_box.clear()
     search_box.send_keys(query, Keys.ENTER)
 
 
+def make_multiple_searches(searches: [str], search_gap: float = 2.0) -> None:
+    """
+    This method automates the work of making each search individually
+    :param searches A list of strings(queries or searches) to be searched
+    :param search_gap Time gap between each search to be made, (in float).
+    :return None
+    """
+    search_count = 0
+    for search_query in searches:
+        make_browser_search(search_query)
+        search_count += 1
+        print(f"\rNo of searches done : {i} ✔", end="", sep="")
+        time.sleep(search_gap)
+
+
 # TODO 1. Add CLI arguments to pass the no. of searches and also specifying
 #  the browser to use
 if __name__ == '__main__':
-    generator = SearchGenerator()
     set_browser_ready(BrowserCodes.CHROME)
-    i = 0
-    for headline in generator.generate_searches(
-            app_configuration['search-count']):
-        i += 1
-        search = " ".join(headline.split()[:random.randint(4, 7)])
-        make_browser_search(search)
-        time.sleep(2)
-        print(f"\rNo of searches done : {i} ✔", end="", sep="")
+
+    no_of_searches = app_configuration.get('search-count')
+    if app_configuration.get('search-source') == 'keywords':
+        with open('./keywords.txt', 'r') as keywords_file:
+            # randomly generate a large number and then extract 30 lines from it
+            n = rn.randint(1, 10000)
+            lines = keywords_file.readlines()[n:n + no_of_searches]
+            make_multiple_searches(lines)
+    elif app_configuration.get('search-source') == 'news-api':
+        generator = SearchGenerator()
+        make_multiple_searches(generator.generate_searches(no_of_searches))
+

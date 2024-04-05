@@ -1,6 +1,6 @@
 import json
 import os
-import random
+import random as rn
 
 import requests
 
@@ -26,9 +26,9 @@ class SearchGenerator:
 
         req_params = {
             'apiKey': bing_api,
-            'country': random.choice(COUNTRIES),
-            'category': self.category or random.choice(CATEGORIES),
-            'pageSize': count or 10
+            'country': rn.choice(COUNTRIES),
+            'category': self.category or rn.choice(CATEGORIES),
+            'pageSize': count
         }
         with requests.get(self.NEWS_URL, params=req_params) as response:
             if response.status_code != 200:
