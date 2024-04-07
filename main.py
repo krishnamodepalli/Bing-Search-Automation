@@ -1,3 +1,4 @@
+import argparse
 import os
 import random as rn
 import time
@@ -22,14 +23,17 @@ class BrowserCodes:
     EDGE = 3
 
     @staticmethod
-    def get_browser(code) -> str:
+    def get_browser(code: str) -> int:
         """
         This will provide the browser name for the corresponding browser code.
-        :return browser_name: str value of the browser name
+        :return browser_name: int value of the browser name
         """
-        if code == 1:    res = 'chrome'
-        elif code == 2:  res = 'brave'
-        elif code == 3:  res = 'edge'
+        if code == 'chrome':
+            res = 1
+        elif code == 'brave':
+            res = 2
+        elif code == 'edge':
+            res = 3
         else:
             raise Exception(f'Unknown code {code} parsed. Please correct the '
                             f'code you sent')
@@ -41,7 +45,7 @@ class BrowserCodes:
 # are used based on specifications and needs. 'chrome-profile-dir' and others
 # are used for Chrome browser. Only the search-count is always used.
 app_configuration = {
-    'search-source': 'keywords',    # this field can be 'keywords' or 'news-api'
+    'search-source': 'keywords',  # this field can be 'keywords' or 'news-api'
     'browser': 'chrome',
     'port': 8989,
     'chrome-profile-dir': r'C:\Users\krish\Apps\chrome\profile',
@@ -57,17 +61,22 @@ def set_browser_ready(browser: int) -> None:
     # open the browser with the remote debugging mode and then attach to browser
 
     global driver
-    if browser in [1, 2]:           # chrome or brave
+    if browser in [1, 2]:  # chrome or brave
         # chrome and brave are well suited with debugging modes for our project
         options = ChromeOptions()
         # starting the browser
+        if browser == 1:
+            brow = 'chrome'         # the browser to use
+        else:
+            brow = 'brave'
         os.system(
-            f'start chrome --remote-debugging-port={app_configuration["port"]} \
+            f'start {brow} --remote-debugging-port={app_configuration["port"]} \
             --user-data-dir="{app_configuration["chrome-profile-dir"]}"')
         # attaching the driver to the browser
         options.add_experimental_option("debuggerAddress", "localhost:8989")
         driver = webdriver.Chrome(options=options)
-    elif browser == 3:              # edge
+    elif browser == 3:  # edge
+        print('You called edge')
         # mobile_emulation = {
         #     "deviceMetrics": {"width": 360, "height": 640, "pixelRatio": 3.0},
         #     "userAgent": "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 "
@@ -111,23 +120,45 @@ def make_multiple_searches(searches: [str], search_gap: float = 2.0) -> None:
     for search_query in searches:
         make_browser_search(search_query)
         search_count += 1
-        print(f"\rNo of searches done : {i} ✔", end="", sep="")
+        print(f"\rNo of searches done : {search_count} ✔", end="", sep="")
         time.sleep(search_gap)
 
 
 # TODO 1. Add CLI arguments to pass the no. of searches and also specifying
 #  the browser to use
 if __name__ == '__main__':
-    set_browser_ready(BrowserCodes.CHROME)
+    # arg-parser
+    parser = argparse.ArgumentParser(
+        prog='main.py',
+        description='Automates the task of making bing searches and earning \
+bing reward points.',
+        epilog='Some ending text')
 
-    no_of_searches = app_configuration.get('search-count')
-    if app_configuration.get('search-source') == 'keywords':
+    parser.add_argument('-c', '--search-count',
+                        type=int, default=30)
+    parser.add_argument('-b', '--browser',
+                        choices=['chrome', 'edge', 'brave'], type=str,
+                        default='chrome')
+    parser.add_argument('-g', '--search-gap', type=float, default=2.0)
+    parser.add_argument('-t', '--search-type', type=int, choices=[1, 2],
+                        help="1 for keywords and 2 for news-api highlights",
+                        default=1)
+
+    args = parser.parse_args()
+    set_browser_ready(BrowserCodes.get_browser(args.browser or
+                                               app_configuration['browser']))
+
+    no_of_searches = args.search_count
+    searching_type = args.search_type
+    search_gap = args.search_gap
+
+    if searching_type == 1:     # keywords
         with open('./keywords.txt', 'r') as keywords_file:
             # randomly generate a large number and then extract 30 lines from it
             n = rn.randint(1, 10000)
             lines = keywords_file.readlines()[n:n + no_of_searches]
-            make_multiple_searches(lines)
-    elif app_configuration.get('search-source') == 'news-api':
+            make_multiple_searches(lines, search_gap)
+    elif searching_type == 2:     # news-api highlights
         generator = SearchGenerator()
-        make_multiple_searches(generator.generate_searches(no_of_searches))
-
+        make_multiple_searches(generator.generate_searches(no_of_searches),
+                               search_gap)
